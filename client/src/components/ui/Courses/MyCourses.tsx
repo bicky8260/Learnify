@@ -165,10 +165,10 @@ export default function MyCourses({ }: MyCoursesProps) {
         </div>
         <div className="text-center mb-8">
           <h3 className="text-3xl font-bold text-[var(--foreground)] mb-3">
-            No Courses Purchased Yet
+            No Courses Enrolled Yet
           </h3>
           <p className="text-[var(--muted-foreground)] text-lg max-w-md mx-auto leading-relaxed">
-            Start exploring our premium courses and add them to your collection!
+            Start exploring courses and enroll to build your learning path.
           </p>
         </div>
         <button 

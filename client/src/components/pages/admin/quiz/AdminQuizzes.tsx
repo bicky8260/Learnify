@@ -152,7 +152,7 @@ export default function AdminQuizzes() {
                       Chapter
                     </th>
                     <th className="text-left py-4 px-4 text-sm font-semibold text-[var(--foreground)]">
-                      Value Stream
+                      Course
                     </th>
                     <th className="text-center py-4 px-4 text-sm font-semibold text-[var(--foreground)]">
                       <div className="flex items-center justify-center gap-1">

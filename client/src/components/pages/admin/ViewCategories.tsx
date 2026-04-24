@@ -313,7 +313,7 @@ export default function ViewCategories() {
         <ConfirmDialog
           open={deleteOpen}
           title="Delete Brand"
-          description={`Are you sure you want to delete "${selected?.name}"? This will also delete all associated Application and Value Stream. This action cannot be undone.`}
+          description={`Are you sure you want to delete "${selected?.name}"? This will also delete all associated Application and Course. This action cannot be undone.`}
           confirmText="Delete"
           onConfirm={() => selected && deleteMutation.mutate(selected.id)}
           onClose={() => setDeleteOpen(false)}

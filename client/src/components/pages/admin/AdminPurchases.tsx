@@ -116,7 +116,7 @@ export default function AdminPurchases() {
         ),
       },
       {
-        header: "Value Stream",
+        header: "Course",
         accessorKey: "chapter.module.expertise.skillCategory.course.title",
         size: 200,
         cell: ({ row }) => (
@@ -334,7 +334,7 @@ export default function AdminPurchases() {
             <div className="flex-1 relative group w-full sm:w-auto">
               <input
                 type="text"
-                placeholder="Search purchases by student, Value Stream, or chapter..."
+                placeholder="Search purchases by student, course, or chapter..."
                 className="theme-input w-full pl-11 py-3 text-[var(--foreground)] placeholder-[var(--muted-foreground)] placeholder:font-normal placeholder:opacity-80 transition-all duration-300"
                 onChange={(e) => setSearchInput(e.target.value)}
                 value={searchInput}
@@ -528,7 +528,7 @@ export default function AdminPurchases() {
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">
-                          Value Stream
+                          Course
                         </p>
                         <p className="font-medium text-foreground truncate">
                           {

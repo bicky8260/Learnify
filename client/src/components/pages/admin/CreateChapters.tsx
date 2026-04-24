@@ -10,7 +10,6 @@ import { CreateBulkChaptersRequest } from "../../../types/zod";
 import useRouter from "../../../hooks/useRouter";
 import { useParams } from "react-router-dom";
 import type { ErrorRes } from "../../../types";
-import UploadImage from "../../lazy/UploadImage";
 
 export default function CreateChapters() {
   const { moduleId } = useParams();
@@ -29,7 +28,6 @@ export default function CreateChapters() {
           content: "",
           price: 0,
           moduleId: moduleId || "",
-          tumbnailUrl: "",
           status: "DRAFT" as const,
         },
       ],
@@ -65,7 +63,6 @@ export default function CreateChapters() {
       content: "",
       price: 0,
       moduleId: moduleId || "",
-      tumbnailUrl: "",
       status: "DRAFT" as const,
     });
   };
@@ -219,25 +216,6 @@ export default function CreateChapters() {
                         }
                       </p>
                     )}
-                  </div>
-
-                  <div className="mt-6 space-y-2">
-                    <label className="block text-sm font-semibold text-[var(--foreground)]">
-                      Thumbnail (optional)
-                    </label>
-                    <Controller
-                      name={`chapters.${index}.tumbnailUrl`}
-                      control={form.control}
-                      render={({ field }) => (
-                        <UploadImage
-                          imageUrl={field.value}
-                          setImageUrl={(url: string) => field.onChange(url)}
-                          width={"full"}
-                          height={200}
-                          text="Click to upload thumbnail"
-                        />
-                      )}
-                    />
                   </div>
 
                   {/* Publish Toggle */}

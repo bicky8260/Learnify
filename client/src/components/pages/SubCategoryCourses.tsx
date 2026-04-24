@@ -70,7 +70,10 @@ export default function SubCategoryCourses() {
                 id: course.id,
                 title: course.title,
                 description: course.description,
-                image: course.tumbnailUrl || modernMedia.courseFallback,
+                image:
+                  (course.thumbnailUrl && course.thumbnailUrl.trim()) ||
+                  (course.tumbnailUrl && course.tumbnailUrl.trim()) ||
+                  modernMedia.courseFallback,
                 category: course.category?.name,
                 subcategory: course.subCategory?.name,
                 rating: 4.8,

@@ -1084,6 +1084,53 @@ export async function getLessonsByChapterIdWithAuthService(
   chapterId: string,
   userId: string
 ): Promise<(Lessons & { Video: Video[]; isCompleted?: boolean })[]> {
+  const chapter = await prisma.chapters.findUnique({
+    where: {
+      id: chapterId,
+      isActive: true,
+    },
+    select: {
+      id: true,
+      module: {
+        select: {
+          expertise: {
+            select: {
+              skillCategory: {
+                select: {
+                  courseId: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!chapter) {
+    throw new AppError("Chapter not found", 404);
+  }
+
+  const courseId = chapter.module.expertise.skillCategory.courseId;
+
+  const enrollment = await prisma.purchase.findFirst({
+    where: {
+      userId,
+      isActive: true,
+      OR: [
+        { chapterId },
+        { courseId },
+      ],
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!enrollment) {
+    throw new AppError("Access denied. Please enroll in this course to view lessons.", 403);
+  }
+
   const lessons = await prisma.lessons.findMany({
     where: {
       chapterId: chapterId,

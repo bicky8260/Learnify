@@ -52,12 +52,12 @@ export default function BrandCourses() {
 
         {coursesQuery.isLoading && (
           <div className="text-[var(--muted-foreground)]">
-            Loading Value Streams...
+            Loading Courses...
           </div>
         )}
         {!coursesQuery.isLoading && coursesQuery.data?.length === 0 && (
           <div className="text-[var(--muted-foreground)]">
-            No Value Streams found for this Application.
+            No Courses found for this Application.
           </div>
         )}
 
@@ -69,7 +69,10 @@ export default function BrandCourses() {
                 id: course.id,
                 title: course.title,
                 description: course.description,
-                image: course.tumbnailUrl || modernMedia.courseFallback,
+                image:
+                  (course.thumbnailUrl && course.thumbnailUrl.trim()) ||
+                  (course.tumbnailUrl && course.tumbnailUrl.trim()) ||
+                  modernMedia.courseFallback,
                 category: course.category?.name,
                 subcategory: course.subCategory?.name,
                 rating: 4.8,

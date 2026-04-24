@@ -634,7 +634,7 @@ export default function AdminFaq() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           {/* Course Selector */}
                           <div>
-                            <label className="block text-sm font-medium text-[var(--muted-foreground)] mb-2">Value Stream</label>
+                            <label className="block text-sm font-medium text-[var(--muted-foreground)] mb-2">Course</label>
                             <select
                               value={selectedCourse || ""}
                               onChange={(e) => {
@@ -644,7 +644,7 @@ export default function AdminFaq() {
                               }}
                               className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                             >
-                              <option value="">All Value Streams</option>
+                              <option value="">All Courses</option>
                               {Object.values(hierarchy).map(course => (
                                 <option key={course.id} value={course.id}>{course.title}</option>
                               ))}

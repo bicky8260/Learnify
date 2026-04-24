@@ -69,6 +69,88 @@ export async function createPurchaseService(
     return purchase;
 }
 
+export async function createCourseEnrollmentService(
+    userId: string,
+    courseId: string
+): Promise<Purchase> {
+    const existingEnrollment = await prisma.purchase.findFirst({
+        where: {
+            userId,
+            courseId,
+            isActive: true,
+        },
+    });
+
+    if (existingEnrollment) {
+        throw new AppError("Course already enrolled", 400);
+    }
+
+    const course = await prisma.course.findUnique({
+        where: {
+            id: courseId,
+            isActive: true,
+        },
+        select: {
+            id: true,
+            SkillCategory: {
+                where: { isActive: true },
+                orderBy: { order: "asc" },
+                select: {
+                    Expertise: {
+                        where: { isActive: true },
+                        orderBy: { order: "asc" },
+                        select: {
+                            Module: {
+                                where: { isActive: true },
+                                orderBy: { order: "asc" },
+                                select: {
+                                    Chapters: {
+                                        where: { isActive: true },
+                                        orderBy: { order: "asc" },
+                                        select: { id: true },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    });
+
+    if (!course) {
+        throw new AppError("Course not found", 404);
+    }
+
+    let previewChapterId: string | null = null;
+
+    for (const skillCategory of course.SkillCategory) {
+        for (const expertise of skillCategory.Expertise) {
+            for (const module of expertise.Module) {
+                if (module.Chapters.length > 0) {
+                    previewChapterId = module.Chapters[0].id;
+                    break;
+                }
+            }
+            if (previewChapterId) break;
+        }
+        if (previewChapterId) break;
+    }
+
+    if (!previewChapterId) {
+        throw new AppError("No curriculum found for this course", 400);
+    }
+
+    return prisma.purchase.create({
+        data: {
+            userId,
+            courseId,
+            chapterId: previewChapterId,
+            amount: 0,
+        },
+    });
+}
+
 export async function getUserPurchasesService(userId: string) {
     const purchases = await prisma.purchase.findMany({
         where: {

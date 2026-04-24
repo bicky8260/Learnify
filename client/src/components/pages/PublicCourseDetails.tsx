@@ -1,6 +1,6 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import NavBar from "../ui/Landing/NavBar";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../../lib/axios/axios";
 import { API_ROUTES } from "../../lib/api";
 import type {
@@ -57,6 +57,10 @@ interface CourseDetailsResponse extends Response {
   };
 }
 
+type SkillCategoryNode = CourseDetailsResponse["data"]["SkillCategory"][number];
+type ExpertiseNode = SkillCategoryNode["Expertise"][number];
+type ModuleNode = ExpertiseNode["Module"][number];
+
 // ============================================================
 // COMPONENT
 // ============================================================
@@ -64,11 +68,12 @@ interface CourseDetailsResponse extends Response {
 export default function PublicCourseDetails() {
   const { courseId } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const { isLogedIn } = useLogin();
 
   if (!courseId) {
-    return <div className="w-full">Invalid Value Stream ID</div>;
+    return <div className="w-full">Invalid Course ID</div>;
   }
 
   // Parse focus from URL: e.g. ?focus=skillcategory:abc123
@@ -106,6 +111,24 @@ export default function PublicCourseDetails() {
     enabled: isLogedIn,
   });
 
+  const enrollMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.post(API_ROUTES.PURCHASE.ENROLL_COURSE, {
+        courseId,
+      });
+      return res.data;
+    },
+    onSuccess: async () => {
+      await purchaseStatusQuery.refetch();
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["purchased-courses"] }),
+        queryClient.invalidateQueries({ queryKey: ["my-purchases"] }),
+        queryClient.invalidateQueries({ queryKey: ["my-purchases-hierarchy"] }),
+      ]);
+      navigate(`/course/${courseId}`);
+    },
+  });
+
   // --------------------------------------------------------
   // LOADING / ERROR STATES
   // --------------------------------------------------------
@@ -139,7 +162,7 @@ export default function PublicCourseDetails() {
         <div className="p-8 max-w-7xl mx-auto">
           <div className="text-center py-12">
             <div className="text-destructive text-lg mb-4">
-              Failed to load Value Stream details
+              Failed to load Course details
             </div>
             <button
               onClick={() => navigate("/")}
@@ -155,9 +178,30 @@ export default function PublicCourseDetails() {
 
   const course = courseDetailsQuery.data?.data;
   if (!course) return null;
+  const courseThumbnailUrl =
+    (course.thumbnailUrl && course.thumbnailUrl.trim()) ||
+    (course.tumbnailUrl && course.tumbnailUrl.trim()) ||
+    null;
 
   const isCourseFree = course.totalPrice === 0;
-  const isPurchased = purchaseStatusQuery.data?.data?.isPurchased || false;
+  const isEnrolled = purchaseStatusQuery.data?.data?.isPurchased || false;
+
+  const previewSkillCategories = course.SkillCategory.slice(0, 1).map(
+    (skillCategory: SkillCategoryNode) => ({
+      ...skillCategory,
+      Expertise: skillCategory.Expertise.slice(0, 1).map((expertise: ExpertiseNode) => ({
+        ...expertise,
+        Module: expertise.Module.slice(0, 1).map((module: ModuleNode) => ({
+          ...module,
+          Chapters: module.Chapters.slice(0, 2),
+        })),
+      })),
+    })
+  );
+
+  const curriculumSkillCategories = isEnrolled
+    ? course.SkillCategory
+    : previewSkillCategories;
 
   // --------------------------------------------------------
   // COUNTS
@@ -208,10 +252,10 @@ export default function PublicCourseDetails() {
   // HANDLERS
   // --------------------------------------------------------
 
-  const handleEnrollClick = () => {
+  const handleEnrollClick = async () => {
     if (!isLogedIn) {
       const shouldLogin = confirm(
-        "You need to login to enroll in this Value Stream. Click OK to login or Cancel to sign up."
+        "You need to login to enroll in this Course. Click OK to login or Cancel to sign up."
       );
       if (shouldLogin) {
         navigate("/login", { state: { redirect: `/course/${courseId}` } });
@@ -220,7 +264,15 @@ export default function PublicCourseDetails() {
       }
       return;
     }
-    navigate(`/course/${courseId}`);
+
+    try {
+      await enrollMutation.mutateAsync();
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Unable to enroll in this course right now.";
+      window.alert(message);
+    }
   };
 
   // --------------------------------------------------------
@@ -278,12 +330,12 @@ export default function PublicCourseDetails() {
                 {isCourseFree ? (
                   <span className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-semibold border border-primary/20">
                     <CheckCircle2 size={16} />
-                    Free Value Stream
+                    Free Course
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-semibold border border-primary/20">
                     <CreditCard size={16} />
-                    Paid Value Stream — ${course.totalPrice.toFixed(2)}
+                    Paid Course — ${course.totalPrice.toFixed(2)}
                   </span>
                 )}
               </div>
@@ -336,20 +388,21 @@ export default function PublicCourseDetails() {
 
               {/* CTA Buttons */}
               <div className="flex flex-wrap gap-4">
-                {isPurchased ? (
+                {isEnrolled ? (
                   <div className="flex items-center gap-2 px-6 py-3 bg-primary/10 text-primary rounded-lg font-semibold border border-primary/20">
                     <CheckCircle2 size={18} />
-                    Purchased
+                    Enrolled
                   </div>
                 ) : (
                   <button
                     onClick={handleEnrollClick}
+                    disabled={enrollMutation.isPending}
                     className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200"
                   >
                     {isLogedIn ? (
                       <>
                         <UserPlus size={18} />
-                        Enroll Now
+                        {enrollMutation.isPending ? "Enrolling..." : "Enroll Now"}
                       </>
                     ) : (
                       <>
@@ -372,12 +425,12 @@ export default function PublicCourseDetails() {
             </div>
 
             {/* Course Thumbnail */}
-            {course.tumbnailUrl && (
+            {courseThumbnailUrl && (
               <div className="flex justify-center lg:justify-end">
                 <div className="w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl border border-border bg-card hover:shadow-xl transition-shadow duration-300">
                   <div className="aspect-video w-full overflow-hidden bg-muted relative group">
                     <img
-                      src={course.tumbnailUrl}
+                      src={courseThumbnailUrl}
                       alt={course.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
@@ -394,7 +447,7 @@ export default function PublicCourseDetails() {
                   <div className="p-4 bg-card border-t border-border/50">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-semibold text-muted-foreground">
-                        Value Stream Preview
+                        Course Preview
                       </span>
                       <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded-full border border-primary/20">
                         Published
@@ -410,14 +463,26 @@ export default function PublicCourseDetails() {
 
       {/* ── CURRICULUM SECTION ───────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-12">
+        {!isEnrolled && (
+          <div className="mb-6 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm text-foreground">
+            You are viewing a preview. Enroll to unlock the full course curriculum.
+          </div>
+        )}
+
         <CourseCurriculumSection
-          skillCategories={course.SkillCategory}
+          skillCategories={curriculumSkillCategories}
           focusedItem={focusedItem}
         />
 
         {/* Course Materials */}
         <div className="mt-8">
-          <CourseMaterials courseId={courseId} />
+          {isEnrolled ? (
+            <CourseMaterials courseId={courseId} />
+          ) : (
+            <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+              Enroll to unlock full course materials.
+            </div>
+          )}
         </div>
 
         {/* Bottom CTA */}
@@ -427,25 +492,30 @@ export default function PublicCourseDetails() {
               Ready to Start Learning?
             </h3>
             <p className="text-muted-foreground mb-6">
-              {isPurchased
-                ? "You have access to this Value Stream"
+              {isEnrolled
+                ? "You have access to this Course"
                 : "Join thousands of students already enrolled"}
             </p>
             <div className="flex justify-center gap-4 flex-wrap">
-              {isPurchased ? (
+              {isEnrolled ? (
                 <button
                   onClick={() => navigate(`/course/${courseId}`)}
                   className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200"
                 >
-                  Go to Value Stream
+                  Go to Course
                 </button>
               ) : (
                 <>
                   <button
                     onClick={handleEnrollClick}
+                    disabled={enrollMutation.isPending}
                     className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200"
                   >
-                    {isLogedIn ? "Enroll Now" : "Login to Enroll"}
+                    {isLogedIn
+                      ? enrollMutation.isPending
+                        ? "Enrolling..."
+                        : "Enroll Now"
+                      : "Login to Enroll"}
                   </button>
                   {!isLogedIn && (
                     <button

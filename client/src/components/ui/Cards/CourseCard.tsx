@@ -86,7 +86,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
         {/* Badge */}
         <div className="absolute top-3 right-3 bg-gradient-to-r from-[var(--primary)] to-[var(--chart-2)] text-white px-3 py-1 rounded-full text-xs font-semibold opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-          View Value Stream
+          View Course
         </div>
       </div>
 

@@ -16,6 +16,7 @@ import Trainer from "../../../ui/Courses/Lesson/Trainer";
 import Materials from "../../../ui/Courses/Lesson/Material";
 import { formatDuration } from "../../../../utils/formatDuration";
 import { useToast } from "../../../../contexts/ToastContext";
+import { isAxiosError } from "axios";
 
 interface LessonsWithVideoResponse extends Response {
   data: (Lessons & { Video: Video[]; isCompleted?: boolean })[];
@@ -75,6 +76,11 @@ export default function Lessons() {
   });
 
   const lessons = lessonsData?.data || [];
+  const isEnrollmentRequiredError =
+    isAxiosError(error) && error.response?.status === 403;
+  const lessonsErrorMessage = isAxiosError(error)
+    ? error.response?.data?.message || "Failed to load lessons"
+    : "Failed to load lessons";
 
   // Reset selected lesson when lessons change
   useEffect(() => {
@@ -132,13 +138,19 @@ export default function Lessons() {
         <div className="p-8">
           <div className="text-center py-12">
             <div className="text-destructive text-lg mb-4">
-              Failed to load lessons
+              {isEnrollmentRequiredError
+                ? lessonsErrorMessage
+                : "Failed to load lessons"}
             </div>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() =>
+                isEnrollmentRequiredError
+                  ? window.history.back()
+                  : window.location.reload()
+              }
               className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
             >
-              Retry
+              {isEnrollmentRequiredError ? "Go Back" : "Retry"}
             </button>
           </div>
         </div>

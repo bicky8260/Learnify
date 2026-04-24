@@ -12,7 +12,9 @@ export default function MyCoursesCard({
   onCardClick,
 }: MyCoursesCardProps) {
   const thumbnailUrl =
-    course.tumbnailUrl || modernMedia.courseFallback;
+    (course.thumbnailUrl && course.thumbnailUrl.trim()) ||
+    (course.tumbnailUrl && course.tumbnailUrl.trim()) ||
+    modernMedia.courseFallback;
 
   return (
     <div

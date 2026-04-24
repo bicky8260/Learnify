@@ -266,7 +266,7 @@ export function CourseCard({
             </button>
           ) : (
             <span className="flex items-center justify-center gap-1 text-xs font-bold text-primary py-2 group-hover:gap-2 transition-all duration-300">
-              View Value Stream
+              View Course
               <ChevronRight className="w-4 h-4" />
             </span>
           )}

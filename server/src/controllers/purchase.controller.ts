@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { errorHandler } from "@/utils/error";
 import {
     createPurchaseService,
+    createCourseEnrollmentService,
     getUserPurchasesService,
     getUserPurchasedChaptersService,
     checkChapterPurchaseStatusService,
@@ -51,6 +52,40 @@ export async function createPurchaseController(
         });
     } catch (err) {
         return errorHandler(err, "Error in createPurchaseController", res);
+    }
+}
+
+export async function createCourseEnrollmentController(
+    req: Request,
+    res: Response
+): Promise<Response> {
+    try {
+        const { courseId } = req.body;
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized",
+            });
+        }
+
+        if (!courseId) {
+            return res.status(400).json({
+                success: false,
+                message: "Course ID is required",
+            });
+        }
+
+        const enrollment = await createCourseEnrollmentService(userId, courseId);
+
+        return res.status(201).json({
+            success: true,
+            message: "Course enrolled successfully",
+            data: enrollment,
+        });
+    } catch (err) {
+        return errorHandler(err, "Error in createCourseEnrollmentController", res);
     }
 }
 

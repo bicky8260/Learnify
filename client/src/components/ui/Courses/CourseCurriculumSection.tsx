@@ -563,7 +563,7 @@ function FullCurriculumView({
           No Curriculum Available
         </h3>
         <p className="text-muted-foreground">
-          The Value Stream curriculum will be available soon.
+          The Course curriculum will be available soon.
         </p>
       </div>
     );
@@ -696,7 +696,7 @@ export default function CourseCurriculumSection({
                   {focusedItem?.type === "chapter" && "Chapter Details"}
                 </>
               ) : (
-                "Value Stream Curriculum"
+                "Course Curriculum"
               )}
             </h2>
           </div>
@@ -720,7 +720,7 @@ export default function CourseCurriculumSection({
               <span className="underline underline-offset-2 decoration-dotted">
                 {showAll
                   ? "show focused view only"
-                  : "see all content of this value stream"}
+                  : "see all content of this course"}
               </span>
             </button>
           )}

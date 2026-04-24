@@ -80,7 +80,7 @@ export default function CoursesSection() {
           </div>
         </div>
         <div className="text-center py-12 text-muted-foreground theme-card rounded-2xl">
-          No Value Stream available at the moment.
+          No Course available at the moment.
         </div>
       </div>
     );

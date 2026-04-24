@@ -57,7 +57,7 @@ export default function CourseDetailsPanel({
       <SidePanel
         isOpen={isOpen}
         onClose={onClose}
-        title="Value Stream Details"
+        title="Course Details"
         width="900px"
       >
         <div className="p-6 flex items-center justify-center h-full">
@@ -77,7 +77,7 @@ export default function CourseDetailsPanel({
       <SidePanel
         isOpen={isOpen}
         onClose={onClose}
-        title="Value Stream Details"
+        title="Course Details"
         width="900px"
       >
         <div className="p-6 flex items-center justify-center h-full">

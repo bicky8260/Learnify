@@ -315,7 +315,7 @@ export default function ViewBrandOEM() {
         <ConfirmDialog
           open={deleteOpen}
           title="Delete Application"
-          description={`Are you sure you want to delete "${selected?.name}"? This will also delete all associated Value Streams. This action cannot be undone.`}
+          description={`Are you sure you want to delete "${selected?.name}"? This will also delete all associated Courses. This action cannot be undone.`}
           confirmText="Delete"
           onConfirm={() => selected && deleteMutation.mutate(selected.id)}
           onClose={() => setDeleteOpen(false)}

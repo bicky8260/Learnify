@@ -78,7 +78,7 @@ export type UpdateCourseRequestParams = z.infer<typeof UpdateCourseRequest>;
 export const CreateSkillCategoryRequest = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().min(1, "Description is required"),
-  courseId: z.string().min(1, "Value Stream ID is required"),
+  courseId: z.string().min(1, "Course ID is required"),
   tumbnailUrl: z.string().url("Invalid URL format").optional(),
   isPublished: z.boolean(),
 });

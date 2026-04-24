@@ -181,7 +181,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Total Courses */}
           <StatCard
-            title="Total Value Streams"
+            title="Total Courses"
             value={stats.totals.courses}
             icon={<BookOpen size={24} />}
             color="bg-blue-500"
@@ -435,7 +435,7 @@ export default function Dashboard() {
 
           {/* Course Creation Over Time - Line Chart */}
           <ChartCard
-            title="Value Stream Creation Timeline"
+            title="Course Creation Timeline"
             subtitle="Last 12 months"
             icon={<Calendar size={20} />}
           >
@@ -466,7 +466,7 @@ export default function Dashboard() {
                 <Line
                   type="monotone"
                   dataKey="count"
-                  name="Value Streams Created"
+                  name="Courses Created"
                   stroke="#FF8042"
                   strokeWidth={3}
                   dot={{ fill: "#FF8042", r: 5 }}
@@ -478,7 +478,7 @@ export default function Dashboard() {
 
           {/* Top Courses - Bar Chart */}
           <ChartCard
-            title="Top 5 Selling Value Streams"
+            title="Top 5 Selling Courses"
             subtitle="By purchase count"
             icon={<TrendingUp size={20} />}
           >
@@ -602,7 +602,7 @@ export default function Dashboard() {
                     </div>
                     <div className="text-sm text-muted-foreground truncate">
                       {purchase.chapter?.module?.expertise?.skillCategory
-                        ?.course?.title || "Unknown Value Stream"}
+                        ?.course?.title || "Unknown Course"}
                     </div>
                   </div>
                   <div className="text-right ml-4">

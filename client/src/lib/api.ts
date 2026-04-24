@@ -206,6 +206,7 @@ export const API_ROUTES = {
   },
   PURCHASE: {
     CREATE: `${BASE_URL}/purchase/create`,
+    ENROLL_COURSE: `${BASE_URL}/purchase/enroll-course`,
     GET_MY_PURCHASES: `${BASE_URL}/purchase/my-purchases`,
     GET_MY_PURCHASES_WITH_HIERARCHY: `${BASE_URL}/purchase/my-purchases/hierarchy`,
     GET_MY_CHAPTERS: `${BASE_URL}/purchase/my-chapters`,

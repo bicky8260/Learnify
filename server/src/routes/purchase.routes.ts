@@ -2,6 +2,7 @@ import { Router } from "express";
 import { verifyUser } from "@/middlewares/auth.middleware";
 import {
     createPurchaseController,
+    createCourseEnrollmentController,
     getUserPurchasesController,
     getUserPurchasedChaptersController,
     checkChapterPurchaseStatusController,
@@ -13,6 +14,7 @@ import {
 const router = Router();
 
 router.post("/create", verifyUser("STUDENT"), createPurchaseController);
+router.post("/enroll-course", verifyUser("STUDENT"), createCourseEnrollmentController);
 router.get("/my-purchases", verifyUser("STUDENT"), getUserPurchasesController);
 router.get("/my-purchases/hierarchy", verifyUser("STUDENT"), getUserPurchasesWithHierarchyController);
 router.get("/my-chapters", verifyUser("STUDENT"), getUserPurchasedChaptersController);

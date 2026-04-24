@@ -279,7 +279,7 @@ export const routes: Route = [
       </AppLayout>
     ),
     menu: true,
-    name: "My Courses",
+    name: "Learning Journey",
     icon: <Brain size={16} />,
     role: "STUDENT",
     activeFor: ["/course/lessons"],
@@ -326,7 +326,7 @@ export const routes: Route = [
       </AppLayout>
     ),
     menu: true,
-    name: "My Purchases",
+    name: "My Courses",
     icon: <DollarSign size={16} />,
     role: "STUDENT",
   },

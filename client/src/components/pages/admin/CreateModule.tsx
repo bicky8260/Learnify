@@ -9,7 +9,6 @@ import { CreateBulkModulesRequest } from "../../../types/zod";
 import useRouter from "../../../hooks/useRouter";
 import { useParams } from "react-router-dom";
 import type { ErrorRes } from "../../../types";
-import UploadImage from "../../lazy/UploadImage";
 import type { z } from "zod";
 
 type CreateBulkModulesFormValues = z.input<typeof CreateBulkModulesRequest>;
@@ -32,7 +31,6 @@ export default function CreateModule() {
          description: "",
          expertiseId: expertiseId || "",
          courseId: courseId || "",
-         tumbnailUrl: "", // <-- Fix spelling here
          level: "Beginner",
           isPublished: false,
         },
@@ -69,7 +67,6 @@ export default function CreateModule() {
       description: "",
       expertiseId: expertiseId || "",
       courseId: courseId || "",
-      tumbnailUrl: "",
       level: "Beginner",
       isPublished: false,
     });
@@ -228,25 +225,6 @@ export default function CreateModule() {
                         }
                       </p>
                     )}
-                  </div>
-
-                  <div className="mt-6 space-y-2">
-                    <label className="block text-sm font-semibold text-[var(--foreground)]">
-                      Thumbnail (optional)
-                    </label>
-                    <Controller
-                      name={`modules.${index}.tumbnailUrl`}
-                      control={form.control}
-                      render={({ field }) => (
-                        <UploadImage
-                          imageUrl={field.value}
-                          setImageUrl={(url: string) => field.onChange(url)}
-                          width={"full"}
-                          height={200}
-                          text="Click to upload thumbnail"
-                        />
-                      )}
-                    />
                   </div>
 
                   {/* Publish Toggle */}

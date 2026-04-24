@@ -24,6 +24,7 @@ export type Course = {
   categoryId: string;
   subCategoryId: string;
   tumbnailUrl: string | null;
+  thumbnailUrl?: string | null;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

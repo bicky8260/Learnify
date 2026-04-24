@@ -1,25 +1,19 @@
 import { useParams } from "react-router-dom";
 import TopBar from "../../../lazy/TopBar";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../../../../lib/axios/axios";
 import { API_ROUTES } from "../../../../lib/api";
 import type {
-  Category,
   Chapters,
   Course,
-  Expertise,
   Lessons,
-  Module,
   Response,
-  SkillCategory,
-  SubCategory,
   Video,
 } from "../../../../types";
 import {
   BookIcon,
   Bookmark,
   CalendarIcon,
-  ChevronDown,
   Folder,
   Video as VideoIcon,
   Award,
@@ -28,6 +22,7 @@ import {
   Play,
   ShoppingCart,
   Check,
+  Lock,
 } from "lucide-react";
 import useRouter from "../../../../hooks/useRouter";
 import { useState, useEffect } from "react";
@@ -43,18 +38,10 @@ interface CourseDetailsResponse extends Response {
 export default function CourseDetails() {
   const { courseId } = useParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const { isLogedIn } = useLogin();
-  const [expandedModules, setExpandedModules] = useState<Set<string>>(
-    new Set()
-  );
-  const [expandedExpertise, setExpandedExpertise] = useState<Set<string>>(
-    new Set()
-  );
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(
-    new Set()
-  );
-  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(
     new Set()
   );
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
@@ -70,7 +57,7 @@ export default function CourseDetails() {
   }, [isLogedIn, fetchCart]);
 
   if (!courseId) {
-    return <div className="w-full">Invalid Value Stream ID</div>;
+    return <div className="w-full">Invalid Course ID</div>;
   }
 
   const courseDetailsQuery = useQuery({
@@ -97,6 +84,46 @@ export default function CourseDetails() {
   const purchasedChapters = new Set(
     purchasedChaptersQuery.data?.data?.purchasedChapters || []
   );
+  const isEnrolled = !!purchasedChaptersQuery.data?.data?.isPurchased;
+  const courseThumbnailUrl =
+    (courseDetailsQuery.data?.data?.thumbnailUrl &&
+      courseDetailsQuery.data.data.thumbnailUrl.trim()) ||
+    (courseDetailsQuery.data?.data?.tumbnailUrl &&
+      courseDetailsQuery.data.data.tumbnailUrl.trim()) ||
+    null;
+
+  const enrollMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.post(API_ROUTES.PURCHASE.ENROLL_COURSE, {
+        courseId,
+      });
+      return res.data;
+    },
+    onSuccess: async () => {
+      await purchasedChaptersQuery.refetch();
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["purchased-courses"] }),
+        queryClient.invalidateQueries({ queryKey: ["my-purchases"] }),
+        queryClient.invalidateQueries({ queryKey: ["my-purchases-hierarchy"] }),
+      ]);
+    },
+  });
+
+  const handleEnrollCourse = async () => {
+    if (!isLogedIn) {
+      router.push("/login", "Login");
+      return;
+    }
+
+    try {
+      await enrollMutation.mutateAsync();
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Unable to enroll in this course right now.";
+      window.alert(message);
+    }
+  };
 
 
 
@@ -126,7 +153,7 @@ export default function CourseDetails() {
         <div className="p-8">
           <div className="text-center py-12">
             <div className="text-destructive text-lg">
-              Failed to load Value Stream details
+              Failed to load Course details
             </div>
             <button
               onClick={() => courseDetailsQuery.refetch()}
@@ -141,26 +168,6 @@ export default function CourseDetails() {
   }
 
   const course = courseDetailsQuery.data.data;
-
-  const toggleModuleExpanded = (moduleId: string) => {
-    const newExpanded = new Set(expandedModules);
-    if (newExpanded.has(moduleId)) {
-      newExpanded.delete(moduleId);
-    } else {
-      newExpanded.add(moduleId);
-    }
-    setExpandedModules(newExpanded);
-  };
-
-  const toggleExpertiseExpanded = (expertiseId: string) => {
-    const newExpanded = new Set(expandedExpertise);
-    if (newExpanded.has(expertiseId)) {
-      newExpanded.delete(expertiseId);
-    } else {
-      newExpanded.add(expertiseId);
-    }
-    setExpandedExpertise(newExpanded);
-  };
 
   const toggleChapterExpanded = (chapterId: string) => {
     const newExpanded = new Set(expandedChapters);
@@ -192,15 +199,25 @@ export default function CourseDetails() {
     }, 0);
   };
 
-  const toggleDescriptionExpanded = (id: string) => {
-    const newExpanded = new Set(expandedDescriptions);
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id);
-    } else {
-      newExpanded.add(id);
-    }
-    setExpandedDescriptions(newExpanded);
-  };
+  const modulesToDisplay = isEnrolled
+    ? course.modules || []
+    : (course.modules || []).slice(0, 1).map((module) => ({
+        ...module,
+        chapters: (module.chapters || []).slice(0, 2),
+      }));
+
+  const visibleChapterCount = modulesToDisplay.reduce(
+    (total, mod) => total + (mod.chapters?.length || 0),
+    0
+  );
+  const hiddenChapterCount = Math.max(
+    calculateTotalChapters() - visibleChapterCount,
+    0
+  );
+  const hiddenModuleCount = Math.max(
+    (course.modules?.length || 0) - modulesToDisplay.length,
+    0
+  );
 
   return (
     <div className="w-full min-h-screen theme-page-shell">
@@ -286,24 +303,44 @@ export default function CourseDetails() {
             </div>
 
             {/* Course Thumbnail */}
-            {course.tumbnailUrl && (
+            {courseThumbnailUrl && (
               <div className="flex justify-center lg:justify-end">
                 <div className="w-full max-w-sm theme-card overflow-hidden hover:shadow-xl transition-shadow duration-300">
                   <div className="aspect-video w-full overflow-hidden bg-muted">
                     <img
-                      src={course.tumbnailUrl}
+                      src={courseThumbnailUrl}
                       alt={course.title}
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     />
                   </div>
                   <div className="p-4 border-t border-border/50">
                     <p className="text-xs text-muted-foreground">
-                      Value Stream Preview
+                      Course Preview
                     </p>
                   </div>
                 </div>
               </div>
             )}
+
+            <div className="lg:col-span-2">
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                {isEnrolled ? (
+                  <span className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400 rounded-full text-sm font-semibold border border-green-200 dark:border-green-800">
+                    <CheckCircle2 size={16} />
+                    Enrolled
+                  </span>
+                ) : (
+                  <button
+                    onClick={handleEnrollCourse}
+                    disabled={enrollMutation.isPending}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60"
+                  >
+                    <Check size={16} />
+                    {enrollMutation.isPending ? "Enrolling..." : "Enroll in Course"}
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -316,7 +353,7 @@ export default function CourseDetails() {
             <div>
               <h2 className="text-3xl font-bold text-foreground flex items-center gap-3">
                 <BookIcon className="w-8 h-8 text-primary" />
-                Value Stream Curriculum
+                Course Curriculum
               </h2>
             </div>
             <button className="flex items-center gap-2 p-3 hover:bg-muted rounded-lg transition-colors group">
@@ -332,9 +369,21 @@ export default function CourseDetails() {
           </p>
         </div>
 
+        {!isEnrolled && (
+          <div className="mb-6 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+            <p className="text-sm text-foreground flex items-center gap-2">
+              <Lock size={16} className="text-primary" />
+              You are viewing a preview. Enroll to unlock full curriculum.
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Hidden content: {hiddenModuleCount} module{hiddenModuleCount === 1 ? "" : "s"} and {hiddenChapterCount} chapter{hiddenChapterCount === 1 ? "" : "s"}.
+            </p>
+          </div>
+        )}
+
         {/* Modules */}
         <div className="space-y-6">
-          {!course.modules || course.modules.length === 0 ? (
+          {!modulesToDisplay || modulesToDisplay.length === 0 ? (
             /* Empty State */
             <div className="text-center py-20 theme-card">
               <div className="text-muted-foreground mb-4">
@@ -344,11 +393,11 @@ export default function CourseDetails() {
                 No Curriculum Available
               </h3>
               <p className="text-muted-foreground">
-                The Value Stream curriculum will be available soon.
+                The Course curriculum will be available soon.
               </p>
             </div>
           ) : (
-            course.modules.map((module, moduleIndex: number) => (
+            modulesToDisplay.map((module, moduleIndex: number) => (
               <div
                 key={module.id}
                 className="theme-card rounded-2xl overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all duration-300"
@@ -384,6 +433,8 @@ export default function CourseDetails() {
                 <div className="divide-y divide-border/40">
                   {module.chapters?.map((chapter, chapterIndex: number) => {
                     const isPurchased = purchasedChapters.has(chapter.id);
+                    const isPreviewChapter =
+                      !isEnrolled && moduleIndex === 0 && chapterIndex === 0;
 
                     return (
                       <div
@@ -436,7 +487,20 @@ export default function CourseDetails() {
                         </div>
 
                         <div className="flex items-center gap-3 ml-4 flex-shrink-0">
-                          {isPurchased ? (
+                          {isEnrolled ? (
+                            <button
+                              onClick={() => {
+                                router.push(
+                                  `/course/lessons/${chapter.id}`,
+                                  chapter.title
+                                );
+                              }}
+                              className="flex gap-2 items-center px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:bg-primary/90 hover:shadow-lg transition-all duration-200"
+                            >
+                              <Play size={16} />
+                              Go to Lessons
+                            </button>
+                          ) : isPurchased ? (
                             <div className="flex items-center gap-2">
                               <span className="flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400 rounded-lg text-sm font-semibold">
                                 <CheckCircle2 size={16} />
@@ -455,6 +519,19 @@ export default function CourseDetails() {
                                 Go to Lessons
                               </button>
                             </div>
+                          ) : isPreviewChapter ? (
+                            <button
+                              onClick={() => {
+                                router.push(
+                                  `/course/lessons/${chapter.id}`,
+                                  chapter.title
+                                );
+                              }}
+                              className="flex gap-2 items-center px-4 py-2 bg-secondary text-secondary-foreground rounded-lg text-sm font-bold hover:bg-secondary/90 hover:shadow-lg transition-all duration-200"
+                            >
+                              <Play size={16} />
+                              Preview
+                            </button>
                           ) : chapter.price > 0 ? (
                             isInCart(chapter.id) ? (
                               <button
@@ -482,16 +559,14 @@ export default function CourseDetails() {
                             )
                           ) : (
                             <button
-                              onClick={() => {
-                                router.push(
-                                  `/course/lessons/${chapter.id}`,
-                                  chapter.title
-                                );
-                              }}
-                              className="flex gap-2 items-center px-4 py-2 bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400 rounded-lg text-sm font-bold hover:bg-green-200 dark:hover:bg-green-900/30 transition-all duration-200"
+                              onClick={handleEnrollCourse}
+                              disabled={enrollMutation.isPending}
+                              className="flex gap-2 items-center px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:bg-primary/90 hover:shadow-lg transition-all duration-200 disabled:opacity-60"
                             >
-                              <Play size={16} />
-                              Free
+                              <Lock size={14} />
+                              {enrollMutation.isPending
+                                ? "Enrolling..."
+                                : "Enroll to Unlock"}
                             </button>
                           )}
                         </div>
@@ -506,7 +581,13 @@ export default function CourseDetails() {
 
         {/* Course Materials Section */}
         <div className="mt-8 max-w-7xl mx-auto px-6">
-          <CourseMaterials courseId={courseId} />
+          {isEnrolled ? (
+            <CourseMaterials courseId={courseId} />
+          ) : (
+            <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+              Enroll to unlock full course materials.
+            </div>
+          )}
         </div>
       </div>
     </div>

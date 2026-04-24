@@ -148,7 +148,7 @@ export default function NavBar() {
                         <div className="p-2">
                           <h4 className="px-3 py-2 text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                            Value Streams
+                            Courses
                           </h4>
                           {results.courses.map((item) => (
                             <div
@@ -172,7 +172,7 @@ export default function NavBar() {
                                   {item.title}
                                 </h3>
                                 <p className="text-xs text-[var(--muted-foreground)] line-clamp-1">
-                                  {item.parentInfo || "Value Stream"}
+                                  {item.parentInfo || "Course"}
                                 </p>
                               </div>
                             </div>
@@ -496,7 +496,7 @@ export default function NavBar() {
                       {/* Courses */}
                       {results.courses.length > 0 && (
                         <div className="p-2">
-                           <h4 className="px-2 py-1 text-[10px] font-bold text-[var(--muted-foreground)] uppercase">Value Streams</h4>
+                           <h4 className="px-2 py-1 text-[10px] font-bold text-[var(--muted-foreground)] uppercase">Courses</h4>
                            {results.courses.map((item) => (
                              <div
                                key={item.id}
