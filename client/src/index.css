@@ -561,6 +561,212 @@ button {
   }
 }
 
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px 0 color-mix(in oklab, var(--primary) 30%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px color-mix(in oklab, var(--primary) 50%, transparent);
+  }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes morph-blob {
+  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+  50% { border-radius: 50% 60% 30% 60% / 30% 60% 70% 40%; }
+  75% { border-radius: 60% 30% 50% 40% / 60% 40% 60% 30%; }
+}
+
+@keyframes border-rotate {
+  from { --angle: 0deg; }
+  to { --angle: 360deg; }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes count-up-fade {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === Premium Utility Classes === */
+
+.animate-pulse-glow {
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-morph-blob {
+  animation: morph-blob 8s ease-in-out infinite;
+}
+
+.animate-scale-in {
+  animation: scale-in 450ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-count-up-fade {
+  animation: count-up-fade 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Gradient text for headings */
+.text-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    color-mix(in oklab, var(--accent-foreground) 80%, var(--primary)),
+    var(--primary)
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 5s ease infinite;
+}
+
+/* Premium glassmorphism card with animated border */
+.theme-card-premium {
+  position: relative;
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--card) 96%, white),
+    color-mix(in oklab, var(--card) 88%, var(--secondary))
+  );
+  color: var(--card-foreground);
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  border-radius: calc(var(--radius) + 8px);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.theme-card-premium::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--primary) 8%, transparent),
+    transparent 50%,
+    color-mix(in oklab, var(--accent) 6%, transparent)
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dark .theme-card-premium {
+  background: linear-gradient(
+    150deg,
+    color-mix(in oklab, var(--card) 90%, black),
+    color-mix(in oklab, var(--card) 82%, var(--muted))
+  );
+}
+
+/* Card shimmer hover */
+.theme-card-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-card-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 25%,
+    color-mix(in oklab, var(--primary) 8%, transparent) 50%,
+    transparent 75%
+  );
+  transform: translateX(-100%);
+  transition: transform 600ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.theme-card-shimmer:hover::after {
+  transform: translateX(100%);
+}
+
+/* Stat card gradient ring */
+.stat-icon-ring {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: calc(var(--radius) + 6px);
+  background: linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--accent-foreground) 80%, var(--primary)));
+  color: white;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--primary) 30%, transparent);
+}
+
+/* Workflow step connector */
+.workflow-connector {
+  position: relative;
+  flex: 1;
+  height: 3px;
+  background: color-mix(in oklab, var(--border) 70%, transparent);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.workflow-connector.active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--primary), color-mix(in oklab, var(--accent-foreground) 85%, var(--primary)));
+  border-radius: inherit;
+  animation: shimmer 2s linear infinite;
+}
+
+/* Stagger with more children support */
+.stagger-in > *:nth-child(7) { animation-delay: 420ms; }
+.stagger-in > *:nth-child(8) { animation-delay: 480ms; }
+.stagger-in > *:nth-child(9) { animation-delay: 540ms; }
+.stagger-in > *:nth-child(10) { animation-delay: 600ms; }
+
 .animate-page-in {
   animation: page-fade-in 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }

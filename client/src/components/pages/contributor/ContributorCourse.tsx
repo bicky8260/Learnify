@@ -5,6 +5,11 @@ import {
   Eye,
   BookOpen,
   Settings,
+  FileEdit,
+  CheckCircle,
+  Rocket,
+  XCircle,
+  Clock,
 } from "lucide-react";
 import TopBar from "../../lazy/TopBar";
 import useRouter from "../../../hooks/useRouter";
@@ -40,6 +45,68 @@ interface CourseQuery extends Response {
 interface CourseWithStatus extends CourseWithCategory {
   status?: string;
   flags?: string[];
+}
+
+// Workflow steps for the visual pipeline
+const workflowSteps = [
+  { key: "DRAFT", label: "Draft", icon: FileEdit, color: "from-gray-400 to-gray-500", textColor: "text-gray-600 dark:text-gray-400" },
+  { key: "SUBMITTED", label: "Submitted", icon: Send, color: "from-blue-400 to-blue-600", textColor: "text-blue-600 dark:text-blue-400" },
+  { key: "APPROVED", label: "Approved", icon: CheckCircle, color: "from-green-400 to-green-600", textColor: "text-green-600 dark:text-green-400" },
+  { key: "PUBLISHED", label: "Published", icon: Rocket, color: "from-purple-400 to-purple-600", textColor: "text-purple-600 dark:text-purple-400" },
+];
+
+function WorkflowPipeline({ stats }: { stats: { draft: number; submitted: number; approved: number; published: number; rejected: number } }) {
+  const steps = [
+    { ...workflowSteps[0], count: stats.draft },
+    { ...workflowSteps[1], count: stats.submitted },
+    { ...workflowSteps[2], count: stats.approved },
+    { ...workflowSteps[3], count: stats.published },
+  ];
+
+  return (
+    <div className="theme-card-premium theme-card-shimmer p-6 mb-6 animate-fade-up" style={{ animationDelay: "100ms" }}>
+      <div className="relative z-10">
+        <h3 className="text-sm font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-5">
+          Course Workflow Pipeline
+        </h3>
+        <div className="flex items-center gap-0">
+          {steps.map((step, index) => (
+            <div key={step.key} className="flex items-center flex-1">
+              <div className="flex flex-col items-center text-center group flex-1">
+                <div
+                  className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center text-white shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl animate-scale-in`}
+                  style={{ animationDelay: `${index * 120}ms` }}
+                >
+                  <step.icon className="h-6 w-6" />
+                </div>
+                <div className="mt-3 animate-count-up-fade" style={{ animationDelay: `${200 + index * 120}ms` }}>
+                  <p className={`text-2xl font-bold ${step.textColor}`}>{step.count}</p>
+                  <p className="text-xs text-[var(--muted-foreground)] mt-0.5">{step.label}</p>
+                </div>
+              </div>
+              {index < steps.length - 1 && (
+                <div className="flex-shrink-0 w-8 lg:w-12 flex items-center justify-center -mt-8">
+                  <div className="workflow-connector active" />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Rejected count if any */}
+        {stats.rejected > 0 && (
+          <div className="mt-4 pt-4 border-t border-[var(--border)]/60">
+            <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-red-500/10 to-rose-500/5 border border-red-500/20 rounded-xl">
+              <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+              <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                {stats.rejected} course{stats.rejected > 1 ? "s" : ""} rejected — needs revision
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function ContributorCourses() {
@@ -204,29 +271,35 @@ export default function ContributorCourses() {
           const isPublished = row.original.published === true;
 
           let displayStatus = "DRAFT";
-          let badgeClass = "bg-gray-500";
+          let badgeClass = "bg-gradient-to-r from-gray-400 to-gray-500";
 
           if (isPublished) {
             displayStatus = "PUBLISHED";
-            badgeClass = "bg-green-600";
+            badgeClass = "bg-gradient-to-r from-purple-500 to-violet-600";
           } else if (status === "APPROVED") {
             displayStatus = "APPROVED";
-            badgeClass = "bg-blue-600";
+            badgeClass = "bg-gradient-to-r from-green-500 to-emerald-600";
           } else if (status === "SUBMITTED") {
             displayStatus = "PENDING";
-            badgeClass = "bg-yellow-500";
+            badgeClass = "bg-gradient-to-r from-blue-500 to-cyan-600";
           } else if (status === "REJECTED") {
             displayStatus = "REJECTED";
-            badgeClass = "bg-red-500";
+            badgeClass = "bg-gradient-to-r from-red-500 to-rose-600";
           }
 
           return (
             <div className="flex flex-col gap-1">
               <span
-                className={`px-2 py-1 rounded-full text-xs font-medium text-white ${badgeClass}`}
+                className={`px-2.5 py-1 rounded-full text-xs font-semibold text-white shadow-sm ${badgeClass}`}
               >
                 {displayStatus}
               </span>
+              {status === "SUBMITTED" && (
+                <span className="flex items-center gap-1 text-[10px] text-blue-500 px-1 leading-tight">
+                  <Clock className="w-3 h-3 animate-pulse" />
+                  Awaiting review
+                </span>
+              )}
               {status === "APPROVED" && !isPublished && (
                 <span className="text-[10px] text-[var(--muted-foreground)] px-1 leading-tight">
                   Approved but not published
@@ -252,7 +325,7 @@ export default function ContributorCourses() {
         cell: ({ row }) => (
           <button
             onClick={() => handleView(row.original)}
-            className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
+            className="p-2 hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl transition-all duration-200 hover:scale-110"
             title="View Details"
           >
             <Eye size={16} />
@@ -267,7 +340,7 @@ export default function ContributorCourses() {
           <div className="flex flex-col items-center gap-1">
             <button
               onClick={() => handleManage(row.original)}
-              className="p-2 hover:bg-purple-100 dark:hover:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg transition-colors"
+              className="p-2 hover:bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-xl transition-all duration-200 hover:scale-110"
               title="Manage Skills"
             >
               <Settings size={16} />
@@ -288,7 +361,7 @@ export default function ContributorCourses() {
               <button
                 onClick={() => handleSubmit(row.original)}
                 disabled={submitMutation.isPending}
-                className="px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 whitespace-nowrap"
+                className="px-3.5 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-xl hover:shadow-lg transition-all duration-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 whitespace-nowrap font-medium hover:scale-105"
                 title="Submit for Review"
               >
                 <Send size={14} />
@@ -309,7 +382,7 @@ export default function ContributorCourses() {
           cell: ({ row }) => (
             <button
               onClick={() => handleDelete(row.original)}
-              className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg transition-colors"
+              className="p-2 hover:bg-red-500/10 text-red-500 rounded-xl transition-all duration-200 hover:scale-110"
               title="Delete"
               disabled={deleteMutation.isPending}
             >
@@ -339,7 +412,7 @@ export default function ContributorCourses() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 animate-fade-up">
           <div>
             <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
               My Courses
@@ -352,68 +425,50 @@ export default function ContributorCourses() {
             onClick={() =>
               router.push("/contributor/courses/create", "Create Course")
             }
-            className="px-4 py-2 bg-[var(--primary)] text-white rounded-md hover:bg-[var(--primary)]/90 transition-colors flex items-center gap-2"
+            className="theme-btn flex items-center gap-2"
           >
             <PlusCircle className="h-4 w-4" />
             Create Course
           </button>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-          <div className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)]">
-            <p className="text-2xl font-bold text-[var(--foreground)]">
-              {stats.total}
-            </p>
-            <p className="text-sm text-[var(--muted-foreground)]">Total</p>
-          </div>
-          <div className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)]">
-            <p className="text-2xl font-bold text-gray-600">{stats.draft}</p>
-            <p className="text-sm text-[var(--muted-foreground)]">Draft</p>
-          </div>
-          <div className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)]">
-            <p className="text-2xl font-bold text-blue-600">
-              {stats.submitted}
-            </p>
-            <p className="text-sm text-[var(--muted-foreground)]">Submitted</p>
-          </div>
-          <div className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)]">
-            <p className="text-2xl font-bold text-green-600">
-              {stats.approved}
-            </p>
-            <p className="text-sm text-[var(--muted-foreground)]">Approved</p>
-          </div>
-          <div className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)]">
-            <p className="text-2xl font-bold text-purple-600">
-              {stats.published}
-            </p>
-            <p className="text-sm text-[var(--muted-foreground)]">Published</p>
-          </div>
-          <div className="bg-[var(--card)] rounded-lg p-4 border border-[var(--border)]">
-            <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
-            <p className="text-sm text-[var(--muted-foreground)]">Rejected</p>
-          </div>
-        </div>
+        {/* Workflow Pipeline (replaces basic stats) */}
+        <WorkflowPipeline stats={stats} />
 
         {/* Table */}
         {coursesQuery.isLoading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)]"></div>
+          <div className="text-center py-16">
+            <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--primary)]"></div>
+            <p className="mt-4 text-[var(--muted-foreground)]">Loading your courses...</p>
           </div>
         ) : visibleCourses.length === 0 ? (
-          <div className="text-center py-12 bg-[var(--card)] rounded-lg border border-[var(--border)]">
-            <BookOpen className="mx-auto h-12 w-12 text-[var(--muted-foreground)] mb-4" />
-            <p className="text-[var(--muted-foreground)]">No courses found</p>
+          <div className="text-center py-16 theme-card-premium rounded-2xl animate-scale-in">
+            <div className="relative z-10">
+              <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[var(--primary)]/10 to-[var(--accent)]/10 flex items-center justify-center">
+                <BookOpen className="h-10 w-10 text-[var(--muted-foreground)]" />
+              </div>
+              <p className="text-lg font-medium text-[var(--foreground)] mb-2">No courses yet</p>
+              <p className="text-[var(--muted-foreground)] mb-6">Start creating your first course to see it here</p>
+              <button
+                onClick={() => router.push("/contributor/courses/create", "Create Course")}
+                className="theme-btn"
+              >
+                <PlusCircle className="h-4 w-4" />
+                Create Your First Course
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="bg-[var(--card)] rounded-lg border border-[var(--border)] overflow-x-auto">
-            <TanstackTable
-              table={table}
-              paginatedRows={table.getRowModel().rows}
-              pageIndex={table.getState().pagination.pageIndex}
-              pageSize={table.getState().pagination.pageSize}
-              onPageChange={table.setPageIndex}
-            />
+          <div className="theme-card-premium overflow-hidden animate-fade-up" style={{ animationDelay: "200ms" }}>
+            <div className="relative z-10 overflow-x-auto">
+              <TanstackTable
+                table={table}
+                paginatedRows={table.getRowModel().rows}
+                pageIndex={table.getState().pagination.pageIndex}
+                pageSize={table.getState().pagination.pageSize}
+                onPageChange={table.setPageIndex}
+              />
+            </div>
           </div>
         )}
 

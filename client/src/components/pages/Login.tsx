@@ -252,9 +252,21 @@ export default function Login() {
                   }}
                 >
                   <p className="text-sm">
-                    {loginMutation.error instanceof Error
-                      ? loginMutation.error.message
-                      : "Login failed. Please try again."}
+                    {(() => {
+                      const err = loginMutation.error as any;
+                      if (err?.response?.status === 404) {
+                        return "Account not found. Please sign up first to continue.";
+                      }
+                      if (err?.response?.status === 401 || err?.response?.status === 403) {
+                        return "Invalid email or password. Please try again.";
+                      }
+                      if (err?.response?.data?.message) {
+                        return String(err.response.data.message);
+                      }
+                      return err instanceof Error
+                        ? err.message
+                        : "Login failed. Please try again.";
+                    })()}
                   </p>
                 </div>
               )}
