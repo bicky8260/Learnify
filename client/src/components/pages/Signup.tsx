@@ -48,6 +48,15 @@ type ApiErrorShape = {
 
 function getApiErrorMessage(error: unknown, fallback: string): string {
   if (axios.isAxiosError<ApiErrorShape>(error)) {
+    if (error.response?.status === 404) {
+      return "Account services are currently offline. Please try again later.";
+    }
+    if (error.response?.status === 409) {
+      return "An account with this email already exists.";
+    }
+    if (error.response?.status === 500) {
+      return "Internal server error. Database might not be connected.";
+    }
     const responseData = error.response?.data;
     const responseMessage = responseData?.message?.trim();
     if (responseMessage) {
@@ -159,6 +168,10 @@ export default function Signup() {
       return res.data;
     },
     onSuccess: () => {
+      const currentUser = userStore.getState().user;
+      if (currentUser) {
+        setUser({ ...currentUser, currentStatus: additionalFormData.currentStatus } as any);
+      }
       const redirect = location.state?.redirect || "/dashboard";
       navigate(redirect);
     },

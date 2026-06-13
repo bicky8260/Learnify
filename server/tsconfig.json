@@ -9,7 +9,7 @@
     "resolveJsonModule": true,              
     "allowJs": false,                       
     "skipLibCheck": true,                   
-    "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "5.0",
 
     /* Strictness */
     "strict": true,

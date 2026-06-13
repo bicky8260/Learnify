@@ -1,4 +1,5 @@
-import { Fragment } from "react/jsx-runtime";
+import { useEffect, useState, Fragment } from "react";
+import type { ReactNode } from "react";
 import { useNavigationStore, useSideBarStore } from "../../state/global";
 import useRouter from "../../hooks/useRouter";
 import {
@@ -9,12 +10,11 @@ import {
   Moon,
   ShoppingCart,
 } from "lucide-react";
-import { useEffect, useState } from "react";
 // import NotificationBell from "../ui/NotificationBell";
 import { useCartStore } from "../../state/cart";
 import { userStore } from "../../state/global";
 
-export default function TopBar({ children }: { children?: React.ReactNode }) {
+export default function TopBar({ children }: { children?: ReactNode }) {
   const { navStack } = useNavigationStore();
   const router = useRouter();
   const toogleSidebar = useSideBarStore((state) => state.toggleCollapse);
@@ -57,13 +57,13 @@ export default function TopBar({ children }: { children?: React.ReactNode }) {
         {/* Sidebar Toggle Button */}
         <button
           onClick={toogleSidebar}
-          className="p-2.5 rounded-[calc(var(--radius)+6px)] theme-panel hover:bg-[var(--muted)]/80 transition-all duration-300 text-[var(--foreground)] hover:text-[var(--primary)] hover:-translate-y-0.5 flex-shrink-0"
+          className="p-2.5 rounded-[calc(var(--radius)+6px)] theme-panel hover:bg-[var(--muted)]/80 transition-all duration-300 text-[var(--foreground)] hover:text-[var(--primary)] hover:-translate-y-0.5 flex-shrink-0 hover:shadow-md"
           title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {isSidebarCollapsed ? (
-            <PanelLeftOpen className="w-5 h-5" />
+            <PanelLeftOpen className="w-5 h-5 transition-transform duration-300" />
           ) : (
-            <PanelLeftClose className="w-5 h-5" />
+            <PanelLeftClose className="w-5 h-5 transition-transform duration-300" />
           )}
         </button>
 
@@ -78,7 +78,7 @@ export default function TopBar({ children }: { children?: React.ReactNode }) {
                   onClick={() => router.goto(index)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-[calc(var(--radius)+4px)] transition-all duration-300 whitespace-nowrap truncate relative group ${
                     isLast
-                      ? "theme-chip font-semibold"
+                      ? "theme-chip font-semibold animate-scale-in"
                       : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/60"
                   }`}
                 >
@@ -99,7 +99,7 @@ export default function TopBar({ children }: { children?: React.ReactNode }) {
                 </button>
 
                 {!isLast && (
-                  <ChevronRight className="w-4 h-4 text-[var(--border)] flex-shrink-0 group-hover:text-[var(--primary)]/50 transition-colors" />
+                  <ChevronRight className="w-4 h-4 text-[var(--border)] flex-shrink-0 transition-colors" />
                 )}
               </Fragment>
             );
@@ -108,19 +108,19 @@ export default function TopBar({ children }: { children?: React.ReactNode }) {
       </div>
 
       {/* Right Section - Theme Toggle, Notification & Children */}
-      <div className="flex gap-3 items-center flex-shrink-0">
+      <div className="flex gap-2 items-center flex-shrink-0">
         {/* Cart Button (Students Only) */}
         {isStudent && (
           <button
             onClick={() => router.push("/cart", "My Cart")}
-            className="p-2.5 rounded-[calc(var(--radius)+6px)] theme-panel hover:bg-[var(--accent)]/60 transition-all duration-300 text-[var(--foreground)] hover:text-[var(--primary)] hover:-translate-y-0.5 relative group"
+            className="p-2.5 rounded-[calc(var(--radius)+6px)] theme-panel hover:bg-[var(--accent)]/60 transition-all duration-300 text-[var(--foreground)] hover:text-[var(--primary)] hover:-translate-y-0.5 relative group hover:shadow-md"
             title="My Cart"
           >
-            <ShoppingCart className="w-5 h-5" />
+            <ShoppingCart className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
             
             {/* Cart Badge */}
             {cartItems.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[var(--destructive)] text-[var(--destructive-foreground)] text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] h-[18px] flex items-center justify-center shadow-sm animate-fade-up">
+              <span className="absolute -top-1 -right-1 bg-gradient-to-r from-[var(--destructive)] to-rose-600 text-[var(--destructive-foreground)] text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] h-[18px] flex items-center justify-center shadow-md animate-scale-in">
                 {cartItems.length}
               </span>
             )}
@@ -130,10 +130,14 @@ export default function TopBar({ children }: { children?: React.ReactNode }) {
         {/* Theme Toggle Button */}
         <button
           onClick={toggleTheme}
-          className="p-2.5 rounded-[calc(var(--radius)+6px)] theme-panel hover:bg-[var(--accent)]/60 transition-all duration-300 text-[var(--foreground)] hover:text-[var(--primary)] hover:-translate-y-0.5"
+          className="p-2.5 rounded-[calc(var(--radius)+6px)] theme-panel hover:bg-[var(--accent)]/60 transition-all duration-300 text-[var(--foreground)] hover:text-[var(--primary)] hover:-translate-y-0.5 hover:shadow-md group"
           title={isDark ? "Switch to light mode" : "Switch to dark mode"}
         >
-          {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          {isDark ? (
+            <Sun className="w-5 h-5 transition-transform duration-300 group-hover:rotate-45 group-hover:scale-110" />
+          ) : (
+            <Moon className="w-5 h-5 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110" />
+          )}
         </button>
 
         {/* Notification Bell */}
@@ -141,7 +145,7 @@ export default function TopBar({ children }: { children?: React.ReactNode }) {
 
         {/* Children Content */}
         {children && (
-          <div className="flex-shrink-0 pl-3 border-l border-[var(--border)]/80 ml-2">
+          <div className="flex-shrink-0 pl-3 border-l border-[var(--border)]/80 ml-1">
             {children}
           </div>
         )}
